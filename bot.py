@@ -18,15 +18,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Log environment variables (without sensitive values)
+logger.info("Starting bot initialization...")
+logger.info(f"Environment variables loaded: {', '.join([k for k in os.environ.keys() if k in ['TELEGRAM_BOT_TOKEN', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'SUPABASE_URL', 'SUPABASE_KEY']])}")
+
 # Initialize AI clients
-claude = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
-openai.api_key = os.getenv('OPENAI_API_KEY')
+try:
+    claude = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+    logger.info("Claude client initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize Claude client: {str(e)}")
+
+try:
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+    logger.info("OpenAI client initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize OpenAI client: {str(e)}")
 
 # Initialize Supabase client
-supabase: Client = create_client(
-    os.getenv('SUPABASE_URL'),
-    os.getenv('SUPABASE_KEY')
-)
+try:
+    supabase: Client = create_client(
+        os.getenv('SUPABASE_URL'),
+        os.getenv('SUPABASE_KEY')
+    )
+    logger.info("Supabase client initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize Supabase client: {str(e)}")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send a message when the command /start is issued."""
@@ -317,10 +334,12 @@ def main():
         logger.error("No token provided. Please set TELEGRAM_BOT_TOKEN in .env file")
         return
 
+    logger.info("Creating Telegram application...")
     # Create the Application
     application = Application.builder().token(token).build()
 
     # Add handlers
+    logger.info("Adding command handlers...")
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("stats", stats_command))
@@ -329,6 +348,7 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     # Start the Bot
+    logger.info("Starting bot polling...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == '__main__':
