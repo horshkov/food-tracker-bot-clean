@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Coefficient Button</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .dynamic-button {
+            padding: 20px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            background: rgba(0, 0, 0, 0.3);
+            border: 4px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dynamic-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .dynamic-button:active {
+            transform: translateY(0);
+        }
+
+        /* Blinking animation */
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(0.98);
+            }
+        }
+
+        .dynamic-button.blinking {
+            animation: blink 0.4s ease-in-out;
+        }
+
+        /* Green stroke for increase */
+        .dynamic-button.green-stroke {
+            border-color: #10b981;
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.5),
+                        0 0 0 2px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Red stroke for decrease */
+        .dynamic-button.red-stroke {
+            border-color: #ef4444;
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.5),
+                        0 0 0 2px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Pulse animation for stroke */
+        @keyframes pulse-green {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(16, 185, 129, 0.5),
+                            0 0 0 2px rgba(16, 185, 129, 0.3);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(16, 185, 129, 0.7),
+                            0 0 0 4px rgba(16, 185, 129, 0.5);
+            }
+        }
+
+        @keyframes pulse-red {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.5),
+                            0 0 0 2px rgba(239, 68, 68, 0.3);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.7),
+                            0 0 0 4px rgba(239, 68, 68, 0.5);
+            }
+        }
+
+        .dynamic-button.green-stroke.blinking {
+            animation: blink 0.4s ease-in-out, pulse-green 0.4s ease-in-out;
+        }
+
+        .dynamic-button.red-stroke.blinking {
+            animation: blink 0.4s ease-in-out, pulse-red 0.4s ease-in-out;
+        }
+
+        .info {
+            margin-top: 30px;
+            color: white;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .coefficient-value {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="dynamic-button" id="dynamicButton">
+            ABOVE <span class="coefficient-value" id="coefficientValue">1.22x</span>
+        </button>
+
+        <div class="info">
+            <p>Coefficient changes every 2 seconds</p>
+            <p>🟢 Green = Higher | 🔴 Red = Lower</p>
+        </div>
+    </div>
+
+    <script>
+        const button = document.getElementById('dynamicButton');
+        const coefficientSpan = document.getElementById('coefficientValue');
+
+        let currentCoefficient = 1.22;
+        let previousCoefficient = 1.22;
+
+        // Function to generate random coefficient
+        function getRandomCoefficient() {
+            const presets = [
+                { prefix: 'ABOVE', value: 1.22 },
+                { prefix: 'ABOVE', value: 1.45 },
+                { prefix: 'ABOVE', value: 1.60 },
+                { prefix: 'ABOVE', value: 1.75 },
+                { prefix: 'BELOW', value: 0.93 },
+                { prefix: 'BELOW', value: 0.85 },
+                { prefix: 'BELOW', value: 0.78 },
+                { prefix: 'ABOVE', value: 1.33 },
+                { prefix: 'BELOW', value: 0.95 }
+            ];
+
+            return presets[Math.floor(Math.random() * presets.length)];
+        }
+
+        // Function to update button
+        function updateButton() {
+            previousCoefficient = currentCoefficient;
+
+            const newCoef = getRandomCoefficient();
+            currentCoefficient = newCoef.value;
+
+            // Determine if coefficient increased or decreased
+            const increased = currentCoefficient > previousCoefficient;
+
+            // Remove previous classes
+            button.classList.remove('blinking', 'green-stroke', 'red-stroke');
+
+            // Add blinking effect and appropriate stroke color
+            button.classList.add('blinking');
+
+            if (increased) {
+                button.classList.add('green-stroke');
+            } else if (currentCoefficient < previousCoefficient) {
+                button.classList.add('red-stroke');
+            }
+
+            // Update text content
+            button.innerHTML = `${newCoef.prefix} <span class="coefficient-value">${currentCoefficient.toFixed(2)}x</span>`;
+
+            // Remove blinking class after animation completes
+            setTimeout(() => {
+                button.classList.remove('blinking');
+            }, 400);
+        }
+
+        // Start the interval
+        setInterval(updateButton, 2000);
+
+        // Optional: Click handler
+        button.addEventListener('click', () => {
+            console.log(`Current coefficient: ${currentCoefficient}x`);
+        });
+    </script>
+</body>
+</html>
